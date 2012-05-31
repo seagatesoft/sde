@@ -1,0 +1,24 @@
+<p>Structured Data Extractor (SDE) adalah implementasi dari <a href="http://www.cs.uic.edu/~yzhai/paper/www05_depta.pdf">DEPTA</a> (Data Extraction based on Partial Tree Alignment), sebuah metode untuk mengekstrak data dari halaman web (dokumen HTML). DEPTA dirancang oleh <a href="http://www.cs.uic.edu/~yzhai/">Yanhong Zhai</a> dan <a href="http://www.cs.uic.edu/~liub/">Bing Liu</a> dari University of Illinois at Chicago dan dipublikasikan dalam <em>paper</em> mereka "Structured Data Extraction from the Web based on Partial Tree Alignment" (<em>IEEE Transactions on Knowledge and Data Engineering</em>, 2006). Dengan masukan berupa suatu halaman web, SDE akan mendeteksi adanya <em>data records</em> pada halaman web tersebut dan mengekstraknya ke dalam struktur tabel (baris dan kolom).</p>
+<h3>Penggunaan</h3>
+<p>
+<ol>
+<li>Ekstrak <em>file</em> sde.zip.</li>
+<li>Pastikan Java Runtime Environment (versi 5 ke atas) sudah terinstal dalam komputer Anda.</li>
+<li>Buka aplikasi <em>command prompt</em> (Windows) atau <em>shell</em> (UNIX).</li>
+<li>Masuk ke direktori tempat anda mengekstrak <em>file</em> sde.zip.</li>
+<li>Jalankan perintah berikut: <code>java -jar sde-runnable.jar URI_input path_to_output_file</code></li>
+<li>Parameter <em>URI_input</em> bisa berupa <em>file</em> di komputer lokal maupun di Internet. Sesuai format URI, Untuk <em>file</em> lokal harus diawali dengan "file:///". Misalnya pada Windows: "file:///D:/Development/Proyek/structured_data_extractor/bin/input/input.html" atau pada UNIX: "file:///home/seagate/input/input.html".</li>
+<li>Data yang berhasil diekstrak dapat dilihat pada <em>output file</em>. <em>Output file</em> merupakan dokumen HTML dan data yang diekstrak disajikan dalam bentuk tabel HTML.</li>
+</ol>
+</p>
+<h3>Dependensi</h3>
+<p>SDE dibangun menggunakan <em>library</em> berikut:
+<ul>
+<li><a href="http://nekohtml.sourceforge.net/">Neko HTML Parser</a></li>
+<li><a href="http://xerces.apache.org/">Xerces</a></li>
+</ul>
+</p>
+<h3>Lisensi</h3>
+<p>SDE dirilis menggunakan lisensi MIT.</p>
+<h3>Author</h3>
+<p>Sigit Dewanto, sigitdewanto11[at]yahoo[dot]co[dot]uk, 2009.</p>
