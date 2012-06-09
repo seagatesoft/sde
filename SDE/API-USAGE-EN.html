@@ -1,0 +1,89 @@
+<h2>API USAGE</h2>
+<p>The main process of SDE is written in <a href="https://github.com/seagatesoft/sde/blob/master/SDE/src/org/seagatesoft/sde/AppConsole.java"><em>AppConsole.java</em></a>. 
+It is developed based on DEPTA method invented by Yanhong Zhai and Bing Liu. 
+DEPTA extracts structured data from a web page in these following steps:</p>
+<ol>
+<li><a href="#BuildTagTree">Build Tag Tree</a></li>
+<li><a href="#MiningDataRegions">Mining Data Regions</a></li>
+<li><a href="#MiningDataRecords">Mining Data Records</a></li>
+<li><a href="#AlignDataItems">Align Data Items</a></li>
+</ol>
+<p>
+<img src="img/depta.gif" alt="The general architecture of the DEPTA system (Zhai and Liu, 2006)" style="border: solid;" />
+<br />
+<span style="font-size: small; font-weight: bold;">The general architecture of the DEPTA system (<a href="http://www.cs.uic.edu/~yzhai/paper/www05_depta.pdf">Zhai and Liu, 2006</a>)</span>
+</p>
+<h3 id="BuildTagTree">1. Build Tag Tree</h3>
+<p>
+First, we build a tag tree for the web page. 
+SDE uses NekoHTML Parser to create the DOM tree of the web page, then it creates the tag tree based on the DOM tree. 
+The <em>input</em> parameter is a string parameter in URI format. It refers to the input web page.
+The <em>ignoreFormattingTags</em> parameter is a boolean parameter. If its value is <em>true</em>, then HTML style formatting tags like <em>B</em>, <em>I</em>, <em>U</em>, etc. will be ignored in the tag tree building (it will be treated as ordinary text).
+</p>
+<code>
+TagTreeBuilder builder = new DOMParserTagTreeBuilder();<br />
+TagTree tagTree = builder.buildTagTree(input, ignoreFormattingTags);
+</code>
+<h3 id="MiningDataRegions">2. Mining Data Regions</h3>
+<p>
+After the tag tree has been built, SDE will create a <em>TreeMatcher</em> object that will be used to calculate similarity score between subtrees in the tag tree.
+SDE uses an implementation of Simple Tree Matching algorithm.
+The <em>TreeMatcher</em> objec will be passed as a parameter in <em>MiningDataRegions</em> constructor. 
+<em>MiningDataRegions</em> is an implementation of Mining Data Regions algorithm to identify data regions that exists in the web page.
+To find those data regions, SDE will call <em>findDataRegions</em> method in the <em>MiningDataRegions</em> object. The method will return a list of <em>DataRegion</em> objects;
+We can customize parameter values used in Mining Data Regions algorithm like maximum node in generalized nodes (default 9) and similarity treshold (default 90%).  
+</p>
+<code>
+TreeMatcher matcher = new SimpleTreeMatching();<br />
+DataRegionsFinder dataRegionsFinder = new MiningDataRegions( matcher );<br />
+List&lt;DataRegion&gt; dataRegions = dataRegionsFinder.findDataRegions(tagTree.getRoot(), maxNodeInGeneralizedNodes, similarityTreshold);
+</code>
+<h3 id="MiningDataRecords">3. Mining Data Records</h3>
+<p>
+For each data region, SDE will extract its data records (rows in a table structure) by calling <em>findDataRecords</em> method in <em>MiningDataRecords</em> object.
+The method will return an array of <em>DataRecord</em> object.
+</p>
+<code>
+DataRecordsFinder dataRecordsFinder = new MiningDataRecords( matcher );<br />
+DataRecord[][] dataRecords = new DataRecord[ dataRegions.size() ][];<br />
+<br />
+for( int dataRecordArrayCounter = 0; dataRecordArrayCounter < dataRegions.size(); dataRecordArrayCounter++)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;DataRegion dataRegion = dataRegions.get( dataRecordArrayCounter );<br />
+&nbsp;&nbsp;&nbsp;dataRecords[ dataRecordArrayCounter ] = dataRecordsFinder.findDataRecords(dataRegion, similarityTreshold);<br />
+}
+</code>
+<h3 id="AlignDataItems">4. Align Data Items</h3>
+<p>
+For each array of <em>DataRecord</em>, SDE will align their data items to transform them into a table (in rows and column) structure.
+SDE doing that by calling <em>alignDataRecords</em> method in a <em>ColumnAligner</em> object.
+The method will return a two dimensional array of string that contains extracted data items.
+SDE uses an implementation of Partial Tree Alignment algorithm in the column alignment.
+We can choose whether to use the similarity of the data items in the column alignment process or not.
+If we choose to use the similarity of the data items, SDE will use an implementation of Enhanced Simple Tree Matching algorithm instead of Simple Tree Matching in calculating similarity score in the partial tree alignment process.
+SDE implementation of Enhanced Simple Tree Matching is not a full implementation because it doesn't use visual information as described by Zhai and Liu (2006).   
+</p>
+<code>
+ColumnAligner aligner = null;<br />
+<br />
+if ( useContentSimilarity )<br />
+{<br />
+&nbsp;&nbsp;&nbsp;aligner = new PartialTreeAligner( new EnhancedSimpleTreeMatching() );<br />
+}<br />
+else<br />
+{<br />
+&nbsp;&nbsp;&nbsp;aligner = new PartialTreeAligner( matcher );<br />
+}<br />
+<br />
+List&lt;String[][]&gt; dataTables = new ArrayList&lt;String[][]&gt;();<br />
+<br />
+for(int tableCounter=0; tableCounter< dataRecords.length; tableCounter++)<br />
+{<br />
+&nbsp;&nbsp;&nbsp;String[][] dataTable = aligner.alignDataRecords( dataRecords[tableCounter] );<br />
+<br />
+&nbsp;&nbsp;&nbsp;if ( dataTable != null )<br />
+&nbsp;&nbsp;&nbsp;{<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dataTables.add( dataTable );<br />
+&nbsp;&nbsp;&nbsp;}<br />
+}<br />
+</code>
